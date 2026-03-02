@@ -16,6 +16,7 @@ import java.util.concurrent.Executors;
 public class GitService {
 
     private final ExecutorService executor = Executors.newSingleThreadExecutor();
+    private Path notesDir;
 
     public void shutdown() {
         executor.shutdown();
@@ -25,7 +26,6 @@ public class GitService {
             Thread.currentThread().interrupt();
         }
     }
-    private Path notesDir;
 
     public void initIfNeeded(Path notesDir) {
         this.notesDir = notesDir;

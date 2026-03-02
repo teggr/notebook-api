@@ -23,7 +23,7 @@ public class SettingsController {
         return HtmlTemplates.settingsPage(settingsService.getRemoteUrl(), settingsService.getToken(), null);
     }
 
-    @PostMapping(value = "/settings")
+    @PostMapping(value = "/settings", produces = MediaType.TEXT_HTML_VALUE)
     @ResponseBody
     public String saveSettings(@RequestParam(value="remoteUrl", defaultValue="") String remoteUrl,
                                @RequestParam(value="token", defaultValue="") String token) throws IOException {

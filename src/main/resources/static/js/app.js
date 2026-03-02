@@ -12,10 +12,8 @@ function initEditor() {
         autosave: { enabled: false },
         spellChecker: false,
         previewRender: function(text) {
-            // Replace wiki links [[Note Title]] with clickable links
-            let html = easyMDE.options.previewRender
-                ? marked.parse(text)
-                : text;
+            // marked is bundled with EasyMDE and available globally
+            let html = marked.parse(text);
             html = html.replace(/\[\[([^\]]+)\]\]/g, function(match, title) {
                 const encoded = encodeURIComponent(title);
                 return `<a href="/note/${encoded}" class="wiki-link">${title}</a>`;
