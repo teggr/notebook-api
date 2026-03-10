@@ -44,6 +44,34 @@ Note IDs are opaque unique identifiers and are not derived from note titles.
 
 ---
 
+#### Search notes
+
+```
+GET /api/notes/search?q={query}&limit={limit}
+```
+
+Performs case-insensitive substring search over note title and note content.
+
+Query parameters:
+- `q` (required): search text
+- `limit` (optional): max results to return, defaults to `10`, capped at `10`
+
+**Response** `200 OK`
+```json
+[
+  {
+    "id": "b7ef3194-8f74-4f7b-8f14-3295a8a85f7a",
+    "title": "Meeting notes",
+    "snippet": "...project kickoff and search requirements...",
+    "lastModifiedFormatted": "Mar 10, 2026"
+  }
+]
+```
+
+When `q` is blank, the endpoint returns an empty array.
+
+---
+
 #### Get a note
 
 ```
