@@ -2,6 +2,7 @@ package com.teggr.notebook.controller;
 
 import com.teggr.notebook.model.Note;
 import com.teggr.notebook.model.NoteListItem;
+import com.teggr.notebook.model.NoteSearchItem;
 import com.teggr.notebook.service.NoteService;
 import org.springframework.core.io.PathResource;
 import org.springframework.http.*;
@@ -33,6 +34,15 @@ public class NoteApiController {
         return noteService.getNote(id)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
+    }
+
+    @GetMapping("/search")
+    public List<NoteSearchItem> searchNotes(
+            @RequestParam("q") String query,
+            @RequestParam(value = "limit", required = false) Integer limit
+    ) {
+        int safeLimit = limit == null ? 10 : Math.max(1, Math.min(limit, 10));
+        return noteService.searchNotes(query, safeLimit);
     }
 
     @PostMapping
@@ -69,6 +79,6 @@ public class NoteApiController {
         else if (filename.endsWith(".webp")) contentType = "image/webp";
         return ResponseEntity.ok()
                 .contentType(MediaType.parseMediaType(contentType))
-                .body(new PathResource(imagePath));
+            .body(new PathResource(java.util.Objects.requireNonNull(imagePath)));
     }
 }

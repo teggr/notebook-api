@@ -3,6 +3,7 @@ package com.teggr.notebook;
 import com.teggr.notebook.config.NotebookProperties;
 import com.teggr.notebook.model.Note;
 import com.teggr.notebook.model.NoteListItem;
+import com.teggr.notebook.model.NoteSearchItem;
 import com.teggr.notebook.service.GitService;
 import com.teggr.notebook.service.NoteService;
 import org.junit.jupiter.api.AfterEach;
@@ -118,5 +119,56 @@ class NoteServiceTest {
         assertTrue(secondFetched.isPresent());
         assertEquals("# Unittled\n\nFirst content", firstFetched.get().getContent());
         assertEquals("# Unittled\n\nSecond content", secondFetched.get().getContent());
+    }
+
+    @Test
+    void searchNotesMatchesTitleAndContentCaseInsensitive() throws IOException {
+        Note titleHit = noteService.createNote("Roadmap", "# Roadmap\n\nQuarterly plan");
+        Note contentHit = noteService.createNote("Meeting", "# Team Sync\n\nSearch requirements are discussed here.");
+
+        List<NoteSearchItem> results = noteService.searchNotes("search", 10);
+
+        assertEquals(1, results.size());
+        assertEquals(contentHit.getId(), results.get(0).getId());
+
+        List<NoteSearchItem> caseInsensitive = noteService.searchNotes("ROAD", 10);
+        assertEquals(1, caseInsensitive.size());
+        assertEquals(titleHit.getId(), caseInsensitive.get(0).getId());
+    }
+
+    @Test
+    void searchNotesRanksTitleMatchesBeforeContentMatches() throws IOException {
+        Note contentOnly = noteService.createNote("Weekly Update", "# Weekly Update\n\nContains target phrase.");
+        Note titleMatch = noteService.createNote("Target Document", "# Target Document\n\nNo body keyword needed.");
+
+        List<NoteSearchItem> results = noteService.searchNotes("target", 10);
+
+        assertEquals(2, results.size());
+        assertEquals(titleMatch.getId(), results.get(0).getId());
+        assertEquals(contentOnly.getId(), results.get(1).getId());
+    }
+
+    @Test
+    void searchNotesReturnsEmptyForBlankQueryAndHonorsLimit() throws IOException {
+        noteService.createNote("A", "# A\n\nalpha");
+        noteService.createNote("B", "# B\n\nbeta");
+        noteService.createNote("C", "# C\n\ngamma");
+
+        assertTrue(noteService.searchNotes("   ", 10).isEmpty());
+        assertEquals(2, noteService.searchNotes("#", 2).size());
+        assertEquals(3, noteService.searchNotes("#", 20).size());
+    }
+
+    @Test
+    void searchSnippetIncludesQueryForWhitespaceHeavyContent() throws IOException {
+        noteService.createNote(
+                "Whitespace",
+                "# Whitespace\n\nLine one\n\nLine two with target token\n\nLine three"
+        );
+
+        List<NoteSearchItem> results = noteService.searchNotes("target", 10);
+
+        assertEquals(1, results.size());
+        assertTrue(results.get(0).getSnippet().toLowerCase().contains("target"));
     }
 }
