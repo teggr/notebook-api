@@ -95,6 +95,32 @@ class NoteServiceTest {
     }
 
     @Test
+    void duplicateNote_createsNewNoteWithSameContent() throws IOException {
+        Note source = noteService.createNote("Source Note", "# Source Note\n\nOriginal content");
+        Optional<Note> result = noteService.duplicateNote(source.getId());
+
+        assertTrue(result.isPresent());
+        assertNotEquals(source.getId(), result.get().getId());
+        assertEquals(source.getContent(), result.get().getContent());
+    }
+
+    @Test
+    void duplicateNote_sourceNotFound_returnsEmpty() throws IOException {
+        Optional<Note> result = noteService.duplicateNote("nonexistent-id");
+        assertTrue(result.isEmpty());
+    }
+
+    @Test
+    void duplicateNote_doesNotModifyOriginal() throws IOException {
+        Note source = noteService.createNote("Original", "# Original\n\nKeep this content");
+        noteService.duplicateNote(source.getId());
+
+        Optional<Note> refetched = noteService.getNote(source.getId());
+        assertTrue(refetched.isPresent());
+        assertEquals(source.getContent(), refetched.get().getContent());
+    }
+
+    @Test
     void createDuplicateTitlesCreatesDistinctFilesWithoutOverwrite() throws IOException {
         Note first = noteService.createNote("New Note", "# Unittled\n\nFirst content");
         Note second = noteService.createNote("New Note", "# Unittled\n\nSecond content");

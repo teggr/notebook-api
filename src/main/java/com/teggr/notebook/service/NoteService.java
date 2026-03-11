@@ -124,6 +124,14 @@ public class NoteService {
         Files.deleteIfExists(file);
     }
 
+    public Optional<Note> duplicateNote(String sourceId) throws IOException {
+        Optional<Note> source = getNote(sourceId);
+        if (source.isEmpty()) return Optional.empty();
+        Note original = source.get();
+        Note duplicated = createNote(original.getTitle(), original.getContent());
+        return Optional.of(duplicated);
+    }
+
     public String extractTitle(String content) {
         if (content == null || content.isBlank()) return "Untitled";
         String[] lines = content.split("\n");
