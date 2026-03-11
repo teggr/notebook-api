@@ -59,6 +59,13 @@ public class NoteApiController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/{id}/duplicate")
+    public ResponseEntity<Note> duplicateNote(@PathVariable String id) throws IOException {
+        return noteService.duplicateNote(id)
+                .map(note -> ResponseEntity.status(HttpStatus.CREATED).body(note))
+                .orElse(ResponseEntity.notFound().build());
+    }
+
     @GetMapping("/images/{filename}")
     public ResponseEntity<PathResource> getImage(@PathVariable String filename) {
         Path imagePath = noteService.getNotesDir().resolve("images").resolve(filename);

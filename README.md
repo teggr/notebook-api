@@ -129,6 +129,28 @@ DELETE /api/notes/{id}
 
 ---
 
+#### Duplicate a note
+
+```
+POST /api/notes/{id}/duplicate
+```
+
+Creates a new note whose content is identical to the source note identified by `{id}`.
+
+**Response** `201 Created`
+```json
+{
+  "id": "c3f82a91-1234-4bcd-a567-9876abcdef01",
+  "title": "My Note",
+  "content": "# My Note\n\nNote content here.",
+  "lastModified": "2026-03-11T10:00:00Z"
+}
+```
+
+Returns `404 Not Found` if no note with the given `{id}` exists.
+
+---
+
 ### Images
 
 #### Upload an image
