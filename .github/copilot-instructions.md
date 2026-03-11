@@ -67,3 +67,9 @@ src/main/java/com/teggr/notebook/
 # Test
 ./mvnw test
 ```
+
+## Testing Guidance
+
+- The local environment may run on Java 25, where Mockito inline agent behavior can be brittle in some setups.
+- Prefer service-level tests and lightweight controller tests with real temporary filesystem fixtures over heavy mocking when testing note and search endpoints.
+- If a mocking-related failure appears (ByteBuddy/agent loading warnings escalating to failures), switch to non-mocking test setup for the affected controller path.
