@@ -1,0 +1,14 @@
+{
+    "configurations": [
+        {
+            "type": "java",
+            "name": "Spring Boot-NotebookApplication<notebook>",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "mainClass": "com.teggr.notebook.NotebookApplication",
+            "projectName": "notebook",
+            "args": "",
+            "envFile": "${workspaceFolder}/.env"
+        }
+    ]
+}

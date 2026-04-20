@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Note Viewer</title>
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: var(--font-sans, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif);
+            font-size: 15px;
+            line-height: 1.7;
+            color: light-dark(#1a1a1a, #e0e0e0);
+            background: light-dark(#ffffff, #1c1c1c);
+            padding: 0 0 3rem;
+            color-scheme: light dark;
+        }
+
+        #app-header {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0.5rem 1rem;
+            border-bottom: 1px solid light-dark(#e8e8e8, #2e2e2e);
+            background: light-dark(#fafafa, #181818);
+            position: sticky;
+            top: 0;
+            z-index: 10;
+        }
+
+        #open-in-notes {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.35rem;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: light-dark(#0066cc, #5aabff);
+            text-decoration: none;
+            padding: 0.3rem 0.65rem;
+            border-radius: 5px;
+            border: 1px solid light-dark(#c8dff5, #2a4a6b);
+            background: light-dark(#f0f7ff, #0d2235);
+            transition: background 0.15s, border-color 0.15s;
+        }
+        #open-in-notes:hover {
+            background: light-dark(#dceeff, #13304d);
+            border-color: light-dark(#99c4f0, #3a6a9b);
+            text-decoration: none;
+        }
+        #open-in-notes svg {
+            flex-shrink: 0;
+        }
+
+        article {
+            max-width: 720px;
+            margin: 0 auto;
+            padding: 1.5rem 1rem 0;
+        }
+
+        #note-meta {
+            font-size: 0.8rem;
+            color: light-dark(#888, #777);
+            margin-bottom: 1.25rem;
+        }
+
+        /* Markdown content */
+        #note-content { word-break: break-word; }
+
+        #note-content > * + * { margin-top: 1rem; }
+
+        #note-content h1, #note-content h2, #note-content h3,
+        #note-content h4, #note-content h5, #note-content h6 {
+            font-weight: 700;
+            line-height: 1.25;
+            margin-top: 1.75rem;
+            margin-bottom: 0.4rem;
+        }
+        #note-content h1:first-child,
+        #note-content h2:first-child { margin-top: 0; }
+
+        #note-content h1 { font-size: 1.75rem; }
+        #note-content h2 { font-size: 1.35rem; }
+        #note-content h3 { font-size: 1.1rem; }
+
+        #note-content a { color: light-dark(#0066cc, #5aabff); text-decoration: none; }
+        #note-content a:hover { text-decoration: underline; }
+
+        #note-content ul, #note-content ol { padding-left: 1.5rem; }
+        #note-content li + li { margin-top: 0.25rem; }
+
+        #note-content code {
+            font-family: var(--font-mono, 'Cascadia Code', 'Fira Code', Menlo, monospace);
+            font-size: 0.875em;
+            background: light-dark(#f0f0f0, #2a2a2a);
+            color: light-dark(#b5286a, #e06c75);
+            padding: 0.1em 0.35em;
+            border-radius: 4px;
+        }
+
+        #note-content pre {
+            background: light-dark(#f6f6f6, #252525);
+            border: 1px solid light-dark(#e2e2e2, #383838);
+            border-radius: 6px;
+            padding: 1rem 1.1rem;
+            overflow-x: auto;
+        }
+        #note-content pre code {
+            background: none;
+            color: inherit;
+            padding: 0;
+            border-radius: 0;
+            font-size: 0.85rem;
+        }
+
+        #note-content blockquote {
+            border-left: 3px solid light-dark(#d8d8d8, #555);
+            padding-left: 1rem;
+            color: light-dark(#555, #aaa);
+        }
+
+        #note-content img {
+            max-width: 100%;
+            height: auto;
+            border-radius: 4px;
+            display: block;
+        }
+
+        #note-content hr {
+            border: none;
+            border-top: 1px solid light-dark(#e2e2e2, #383838);
+            margin: 1.5rem 0;
+        }
+
+        #note-content table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.9em;
+            overflow-x: auto;
+            display: block;
+        }
+        #note-content th, #note-content td {
+            border: 1px solid light-dark(#ddd, #444);
+            padding: 0.4rem 0.75rem;
+            text-align: left;
+        }
+        #note-content th {
+            background: light-dark(#f5f5f5, #252525);
+            font-weight: 600;
+        }
+        #note-content tr:nth-child(even) td {
+            background: light-dark(#fafafa, #222);
+        }
+
+        /* Status regions */
+        #loading, #error {
+            text-align: center;
+            padding: 4rem 1rem;
+            font-size: 0.9rem;
+        }
+        #loading { color: light-dark(#888, #666); }
+        #error   { color: light-dark(#cc3333, #ff7777); }
+    </style>
+</head>
+<body>
+
+<header id="app-header">
+    <a id="open-in-notes" href="http://localhost:5173" title="Open in Notes" target="_blank">
+        <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/>
+            <polyline points="15 3 21 3 21 9"/>
+            <line x1="10" y1="14" x2="21" y2="3"/>
+        </svg>
+        Open in Notes
+    </a>
+</header>
+
+<div id="loading">Loading note…</div>
+<div id="error" hidden></div>
+
+<article id="note" hidden>
+    <div id="note-meta"></div>
+    <div id="note-content"></div>
+</article>
+
+<!-- Loaded as regular scripts so they attach to window before the module runs -->
+<script src="https://unpkg.com/markdown-it@14/dist/markdown-it.min.js"></script>
+<script src="https://unpkg.com/dompurify@3/dist/purify.min.js"></script>
+
+<script type="module">
+    import { App } from "https://unpkg.com/@modelcontextprotocol/ext-apps@0.4.2/app-with-deps";
+
+    const app = new App({ name: "note-viewer", version: "1.0.0" });
+    const md  = window.markdownit({ html: false, linkify: true, typographer: true });
+
+    // Open the Notes web app in the host browser rather than the sandboxed iframe
+    document.getElementById("open-in-notes").addEventListener("click", (e) => {
+        e.preventDefault();
+        app.openUrl("http://localhost:5173");
+    });
+
+    const loadingEl = document.getElementById("loading");
+    const errorEl   = document.getElementById("error");
+    const noteEl    = document.getElementById("note");
+    const metaEl    = document.getElementById("note-meta");
+    const contentEl = document.getElementById("note-content");
+
+    /** Extract the Note object from whatever content shape the host delivers */
+    function parseNote(result) {
+        if (result.structuredContent && typeof result.structuredContent === "object") {
+            return result.structuredContent;
+        }
+        const textItem = result.content?.find(c => c.type === "text");
+        if (textItem?.text) {
+            try { return JSON.parse(textItem.text); }
+            catch { return { content: textItem.text }; }
+        }
+        return null;
+    }
+
+    /** Extract a JSON payload from an app.callServerTool result */
+    function parseToolResultJson(result) {
+        if (result.structuredContent && typeof result.structuredContent === "object") {
+            return result.structuredContent;
+        }
+        const textItem = result.content?.find(c => c.type === "text");
+        if (textItem?.text) {
+            try { return JSON.parse(textItem.text); } catch { /* fall through */ }
+        }
+        return null;
+    }
+
+    /**
+     * Resolve markdown image references of the form images/<filename> by
+     * calling the app-only get-note-image tool and replacing src with a data URL.
+     * Images that can't be resolved are hidden rather than shown as broken.
+     */
+    async function resolveImages(container) {
+        const imgs = Array.from(container.querySelectorAll("img[src]"));
+        await Promise.allSettled(imgs.map(async (img) => {
+            const src = img.getAttribute("src") || "";
+            if (!src || src.startsWith("data:") || src.startsWith("http://") || src.startsWith("https://")) return;
+            const filename = src.replace(/^.*[/\\]/, ""); // basename only
+            if (!filename) return;
+            try {
+                const result = await app.callServerTool({ name: "get-note-image", arguments: { filename } });
+                const data = parseToolResultJson(result);
+                if (data?.base64 && data?.mimeType) {
+                    img.src = `data:${data.mimeType};base64,${data.base64}`;
+                } else {
+                    img.hidden = true;
+                }
+            } catch {
+                img.hidden = true;
+            }
+        }));
+    }
+
+    async function renderNote(note) {
+        if (note.lastModified) {
+            const d = new Date(note.lastModified);
+            if (!isNaN(d)) {
+                metaEl.textContent = "Modified " + d.toLocaleDateString(undefined, {
+                    year: "numeric", month: "long", day: "numeric"
+                });
+            }
+        }
+
+        const rawHtml = md.render(note.content || "");
+        contentEl.innerHTML = window.DOMPurify.sanitize(rawHtml, {
+            USE_PROFILES: { html: true },
+            FORBID_TAGS:  ["style", "script"],
+            FORBID_ATTR:  ["onerror", "onload", "onclick", "onmouseover", "onmouseout"]
+        });
+
+        await resolveImages(contentEl);
+
+        loadingEl.hidden = true;
+        noteEl.hidden = false;
+    }
+
+    function showError(msg) {
+        loadingEl.hidden = true;
+        errorEl.textContent = msg;
+        errorEl.hidden = false;
+    }
+
+    // Register BEFORE connect so the initial push from the host is not missed
+    app.ontoolresult = async (result) => {
+        if (result.isError) { showError("Failed to load note."); return; }
+        const note = parseNote(result);
+        if (!note) { showError("Unexpected response format."); return; }
+        await renderNote(note);
+    };
+
+    app.connect();
+</script>
+
+</body>
+</html>
