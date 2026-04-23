@@ -32,13 +32,6 @@ public class NotebookMcpApps {
         this.noteService = noteService;
     }
 
-    @McpTool(title = "View the note", name = "view-the-note", 
-        description = "Renders the note in HTML for reading", 
-        metaProvider = ViewTheNoteMetaProvider.class)
-    public Note viewTheNote( String noteId ) {
-        return noteService.getNote(noteId).orElseThrow();
-    }
-
     public static final class ViewTheNoteMetaProvider implements MetaProvider {
         @Override
         public Map<String, Object> getMeta() {
@@ -87,11 +80,11 @@ public class NotebookMcpApps {
         return Map.of("base64", base64, "mimeType", mimeType);
     }
 
-    public static final class GetNoteImageMetaProvider implements MetaProvider {
-        @Override
-        public Map<String, Object> getMeta() {
-            return Map.of("ui", Map.of("visibility", List.of("app")));
-        }
+    @McpTool(title = "View the note", name = "view-the-note", 
+        description = "Renders the note in HTML for reading", 
+        metaProvider = ViewTheNoteMetaProvider.class)
+    public Note viewTheNote( String noteId ) {
+        return noteService.getNote(noteId).orElseThrow();
     }
 
     @McpResource(name = "Note View App Resource",
@@ -100,6 +93,14 @@ public class NotebookMcpApps {
         metaProvider = CspMetaProvider.class)
     public String getNoteViewAppResource() throws IOException {
         return noteViewAppResource.getContentAsString(Charset.defaultCharset());
+    }
+
+
+    public static final class GetNoteImageMetaProvider implements MetaProvider {
+        @Override
+        public Map<String, Object> getMeta() {
+            return Map.of("ui", Map.of("visibility", List.of("app")));
+        }
     }
 
     public static final class CspMetaProvider implements MetaProvider {
